@@ -1,97 +1,31 @@
-// export interface TreeItem {
-//     children?: TreeItem[];
-//     [property: string]: unknown;
-// }
+import type { TreeItem, TreeOptions, Iterator } from './tree.type'
 
-// /**
-//  * 遍历选项
-//  */
-// export interface TreeOptions<T> {
-//     /** 索引 从 1 开始 */
-//     key?: number
-//     /** 当前层级 从 1 开始 */
-//     level?: number
-//     /** 路径 */
-//     paths?: Array<T>
-//     /** 索引路径 */
-//     indexes?: Array<number>
-// }
-
-// export interface Iterator<T extends TreeItem, R = void> {
-//     (item?: T, options?: TreeOptions<T>): R;
-// }
-
-// export interface MapTreeOptions<T> extends TreeOptions<T> {
-//     /** 是否深度优先， 默认 false */
-//     depthFirst?: boolean
-// }
-
-// export function mapTree<T extends TreeItem>(tree: Array<T>, iterator: Iterator<T, T | void>, options: MapTreeOptions<T> = {}) {
-//     const { level = 1, depthFirst = false, paths = [], indexes = [] } = options
-
-//     return tree.map((item, index) => {
-
-//         if (depthFirst) {
-//             let children = item.children ? mapTree(item.children as Array<T>, iterator, { level: level + 1, depthFirst, paths: [...paths, item], indexes: [...indexes, index] }) : undefined;
-//             children && (item = { ...item, children });
-//             item = (iterator(item, { level, paths, indexes: [...indexes] }) as unknown as T) ?? { ...item };
-
-//             return item;
-//         }
-
-//         item = (iterator(item, { level, paths, indexes: [...indexes] }) as unknown as T) ?? { ...item };
-
-//         if (item.children && item.children.length > 0) {
-//             item.children = mapTree(item.children as Array<T>, iterator, { level: level + 1, depthFirst, paths: [...paths, item], indexes: [...indexes, index] });
-//         }
-//         return item;
-//     })
-
-// }
-
-export interface TreeItem {
-    children?: Array<TreeItem>;
-    [property: string]: any; // 使用 any 类型代替 unknown，如果可能，尽量使用更具体的类型
-}
+export type EachTreeIteratorRes = void | boolean | 'break' | 'continue';
 
 /**
- * 遍历选项
+ * 遍历树
+ * @param tree 数组
+ * @param iterator 
+ * @param options 
+ * @returns 
  */
-export interface TreeOptions<T> {
-    /** 索引 从 1 开始 */
-    key?: number;
-    /** 当前层级 从 1 开始 */
-    level?: number;
-    /** 路径 */
-    paths?: Array<T>;
-    /** 索引路径 */
-    indexes?: Array<number>;
-}
+export function eachTree<T extends TreeItem>(tree: Array<T>, iterator: Iterator<T, EachTreeIteratorRes>, options: TreeOptions<T> = {}): void {
+    const { level = 1, paths = [], indexes = [] } = options;
 
-export interface Iterator<T extends TreeItem, R> {
-    (item?: T, options?: TreeOptions<T>): R;
-}
+    const length = tree.length;
+    for (let i = 0; i < length; i++) {
+        const item = tree[i];
+        const res = iterator(item, { index: i, level, paths, indexes: [...indexes, i] });
 
-export interface MapTreeOptions<T> extends TreeOptions<T> {
-    /** 是否深度优先， 默认 false */
-    depthFirst?: boolean;
-}
-
-export function mapTree<T extends TreeItem, R>(tree: Array<T>, iterator: Iterator<T, R>, options: MapTreeOptions<T> = {}): Array<R> {
-    const { level = 1, depthFirst = false, paths = [], indexes = [] } = options;
-
-    return tree.map((item, index) => {
-        if (depthFirst) {
-            let children = item.children ? mapTree(item.children as Array<T>, iterator, { level: level + 1, depthFirst, paths: [...paths, item], indexes: [...indexes, index] }) : undefined;
-            children && (item = { ...item, children });
-            item = (iterator(item, { level, paths, indexes: [...indexes] }) as unknown as T) ?? { ...item };
-            return item as unknown as R;
+        if (res === 'break') {
+            return;
+        } else if (res === 'continue') {
+            continue;
         }
 
-        item = (iterator(item, { level, paths, indexes: [...indexes] }) as unknown as T) ?? { ...item };
-        if (item.children && item.children.length > 0) {
-            item.children = mapTree(item.children as Array<T>, iterator, { level: level + 1, depthFirst, paths: [...paths, item], indexes: [...indexes, index] }) as unknown as T[];
+        if (Array.isArray(item.children) && item.children.length > 0) {
+            eachTree(item.children as Array<T>, iterator, { index: i, level: level + 1, paths: [...paths, item], indexes: [...indexes, i] });
         }
-        return item as unknown as R;
-    })
+    }
+
 }
