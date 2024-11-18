@@ -1,17 +1,16 @@
-import type { TreeItem, TreeOptions, Iterator } from './tree.type'
+import type { TreeNode, TreeOptions, Iterator } from './tree.type'
 
 export interface StackNode<T> extends Required<TreeOptions<T>> {
     item: T | null;
 }
 
 /**
- * 遍历树, 测试所有节点是否通过 iterator 函数的测试，通过则返回 true，否则返回 false
+ * 判断树中每个节点是否满足某个条件。
  * @param tree 数组
  * @param iterator Iterator 迭代函数
- * @param options TreeOptions
  * @returns boolean
  */
-export function everyTree<T extends TreeItem>(tree: Array<T>, iterator: Iterator<T, boolean>, options: TreeOptions<T> = {}): boolean {
+export function everyTree<T extends TreeNode>(tree: Array<T>, iterator: Iterator<T, boolean>): boolean {
     const stack: Array<StackNode<T>> = [];
     stack.push({ item: null, index: -1, level: 1, paths: [], indexes: [] });
     while (stack.length > 0) {

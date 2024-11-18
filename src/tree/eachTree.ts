@@ -1,4 +1,4 @@
-import type { TreeItem, TreeOptions, Iterator } from './tree.type'
+import type { TreeNode, TreeOptions, Iterator } from './tree.type'
 
 export type EachTreeIteratorRes = void | boolean | 'break' | 'continue';
 
@@ -9,7 +9,7 @@ export type EachTreeIteratorRes = void | boolean | 'break' | 'continue';
  * @param options 
  * @returns 
  */
-export function eachTree<T extends TreeItem>(tree: Array<T>, iterator: Iterator<T, EachTreeIteratorRes>, options: TreeOptions<T> = {}): void {
+export function eachTree<T extends TreeNode>(tree: Array<T>, iterator: Iterator<T, EachTreeIteratorRes>, options: TreeOptions<T> = {}): void {
     const { level = 1, paths = [], indexes = [] } = options;
 
     const length = tree.length;

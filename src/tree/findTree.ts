@@ -1,22 +1,22 @@
-import type { TreeItem, TreeOptions, Iterator } from './tree.type'
+import type { TreeNode, TreeOptions, Iterator } from './tree.type'
 import { isString } from '../predicate/isString'
 import { isNumber } from '../compat/predicate/isNumber'
 import { eachTree } from './eachTree'
 import { everyTree } from './everyTree'
 
 /** 启用缓存 new Map(), 多次重复从一棵树中查找时可大幅提升性能 */
-export type CacheOptions<T extends TreeItem> = {
+export type CacheOptions<T extends TreeNode> = {
     /** 从缓存 Map 中查找的key，使用 Map.get(value) 匹配 */
     value: number | string;
     /** 构建 Map 时，用户自定义缓存 key 的处理函数，如果不传，则默认取迭代对象的 id */
-    resolve?: (item: T, options: TreeOptions<T>) => string | number;
+    resolve?: (item: T, options: Required<TreeOptions<T>>) => string | number;
     /** 匹配到 item 执行副作用函数 */
-    foundEffect?: (item: T, options: TreeOptions<T>) => void;
+    foundEffect?: (item: T, options: Required<TreeOptions<T>>) => void;
 }
 
 export interface FindTreeCache<T> {
     tree: any | null;
-    map: Map<string | number, { data: T, options: TreeOptions<T> }> | null;
+    map: Map<string | number, { data: T, options: Required<TreeOptions<T>> }> | null;
 }
 
 const findTreeCache: FindTreeCache<any> = {
@@ -47,7 +47,7 @@ function object2string(obj: any): string {
  * @param options - 可选的缓存选项。
  * @returns 找到的第一个满足条件的节点，如果没有找到则返回 null。
  */
-export function findTree<T extends TreeItem>(tree: Array<T>, iterator: Iterator<T, boolean>, options?: CacheOptions<T>): T | null {
+export function findTree<T extends TreeNode>(tree: Array<T>, iterator: Iterator<T, boolean>, options?: CacheOptions<T>): T | null {
     const isValidateKey = (value: unknown) => value !== '' && (isString(value) || isNumber(value));
 
     // 缓存优化
