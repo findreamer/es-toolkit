@@ -1,47 +1,36 @@
-import type { TreeNode, Iterator, CacheOptions } from './tree.type'
-import { findTree } from './findTree'
+import { findTree } from './findTree';
+import type { CacheOptions, Iterator, TreeNode } from './tree.type';
 
 /**
  * 在树中查找满足条件的节点的索引。
- * @param tree 
- * @param iterator 
- * @param options 
- * @returns 
+ * @param tree 树形数据
+ * @param iterator 迭代器函数，用于判断节点是否满足条件
+ * @param options 配置选项
+ * @returns 满足条件的节点索引数组或 null
  */
-export function findNodeIndexes<T extends TreeNode>(tree: Array<T>, iterator: Iterator<T, boolean>, options?: Omit<CacheOptions<T>, 'foundEffect'>): Array<number> | null {
-    let indexes: number[] = [];
-    const foundEffect: CacheOptions<T>['foundEffect'] = (item, { index, paths, indexes }) => {
-        indexes = [index];
-        paths = paths.concat();
-        paths.unshift({
-            children: tree
-        } as any);
 
-        for (let i = paths.length - 1; i > 0; i--) {
-            const prev = paths[i - 1];
-            const current = paths[i];
-            indexes.unshift(prev.children!.indexOf(current));
-        }
-        console.log('idx ==> ', indexes, 'indexes ==> ', indexes)
-    }
+export function findNodeIndexes<T extends TreeNode>(
+  tree: T[],
+  iterator: Iterator<T, boolean>,
+  options?: Omit<CacheOptions<T>, 'foundEffect'>
+): number[] | null {
+  let resultIndexes: number[] = [];
 
-    findTree(
-        tree,
-        (item, opts) => {
-            if (iterator(item, opts)) {
-                foundEffect(item, opts);
-                return true;
-            }
-            return false;
-        },
-        !options
-            ? undefined
-            : {
-                ...options,
-                foundEffect
-            }
-    );
+  const onNodeFound: CacheOptions<T>['foundEffect'] = (_, { indexes }) => {
+    resultIndexes = indexes;
+  };
 
+  findTree(
+    tree,
+    (item, opts) => {
+      if (iterator(item, opts)) {
+        onNodeFound(item, opts);
+        return true;
+      }
+      return false;
+    },
+    options ? { ...options, foundEffect: onNodeFound } : undefined
+  );
 
-    return indexes.length ? indexes : null;
+  return resultIndexes.length ? resultIndexes : null;
 }

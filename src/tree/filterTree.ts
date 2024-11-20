@@ -1,45 +1,61 @@
-import type { TreeNode, Iterator, TreeOptions } from './tree.type'
+import type { BooleanType, Iterator, TreeNode, TreeOptions } from './tree.type';
 
 export interface FilterTreeOptions<T> extends TreeOptions<T> {
-    /** 是否深度优先， 默认 false */
-    useDfs?: boolean;
+  /** 是否深度优先， 默认 false */
+  useDfs?: boolean;
 }
 
 /**
  * 通过迭代器过滤树。
- * @param tree 
- * @param iterator 
- * @param options 
- * @returns 
+ * @param tree - 树形数据
+ * @param iterator - 迭代器函数
+ * @param options - 配置选项
+ * @returns 过滤后的树
  */
-export function filterTree<T extends TreeNode>(tree: Array<T>, iterator: Iterator<T, boolean>, options: FilterTreeOptions<T> = {}): Array<T> {
-    const { level = 1, paths = [], useDfs = false, indexes = [] } = options;
+export function filterTree<T extends TreeNode>(
+  tree: T[],
+  iterator: Iterator<T, BooleanType>,
+  options: FilterTreeOptions<T> = {}
+): T[] {
+  const { level = 1, paths = [], useDfs = false, indexes = [] } = options;
 
-    if (useDfs) {
-        return tree.map((item, index) => {
-            let children = item.children ? filterTree(item.children as Array<T>, iterator, { index, level: level + 1, useDfs, paths: [...paths, item], indexes: [...indexes, index] }) : undefined;
-
-            if (Array.isArray(children) && Array.isArray(item.children)) {
-                item = { ...item, children: children };
-            }
-            return item as T;
-        }).filter((item, idx) => iterator(item, { index: idx, level, paths, indexes: [...indexes] }))
+  const processChildren = (item: T, index: number) => {
+    if (!Array.isArray(item.children)) {
+      return item;
     }
 
-    return tree
-        .filter((item, index) => iterator(item, { index, level, paths, indexes: [...indexes] }))
-        .map((item, index) => {
-            if (item.children?.splice) {
-                let children = filterTree(
-                    item.children as Array<T>,
-                    iterator,
-                    { index: indexes[index], level: level + 1, useDfs, paths: [...paths, item], indexes: [...indexes, index] }
-                );
+    const children = filterTree(item.children as T[], iterator, {
+      index: useDfs ? index : indexes[index],
+      level: level + 1,
+      useDfs,
+      paths: [...paths, item],
+      indexes: [...indexes, index],
+    });
 
-                if (Array.isArray(children) && Array.isArray(item.children)) {
-                    item = { ...item, children: children };
-                }
-            }
-            return item as T;
-        });
+    return { ...item, children };
+  };
+
+  if (useDfs) {
+    return tree
+      .map((item, index) => processChildren(item, index))
+      .filter((item, idx) =>
+        iterator(item, {
+          index: idx,
+          level,
+          paths,
+          indexes: [...indexes],
+        })
+      );
+  }
+
+  return tree
+    .filter((item, index) =>
+      iterator(item, {
+        index,
+        level,
+        paths,
+        indexes: [...indexes],
+      })
+    )
+    .map((item, index) => processChildren(item, index));
 }
