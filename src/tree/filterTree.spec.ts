@@ -45,10 +45,13 @@ describe('filterTree', () => {
 
     expect(result[0].children).toHaveLength(1);
     expect(result[0].children![0].id).toBe(11);
-    // 验证调用顺序和参数
+    // @ts-expect-error 测试level值
     expect(iterator.mock.calls[0][1].level).toBe(1);
+    // @ts-expect-error 测试level值
     expect(iterator.mock.calls[1][1].level).toBe(1);
+    // @ts-expect-error 测试level值
     expect(iterator.mock.calls[2][1].level).toBe(2);
+    // @ts-expect-error 测试level值
     expect(iterator.mock.calls[3][1].level).toBe(2);
   });
 
@@ -70,7 +73,7 @@ describe('filterTree', () => {
   });
 
   it('应该正确传递路径信息', () => {
-    const iterator = vi.fn((node: TestNode) => true);
+    const iterator = vi.fn(() => true);
 
     filterTree(basicTree, iterator);
 
@@ -85,7 +88,7 @@ describe('filterTree', () => {
 
   it('应该处理空子节点的情况', () => {
     const emptyTree: TestNode[] = [{ id: 1, name: 'empty', children: [] }];
-    const iterator = vi.fn((node: TestNode) => true);
+    const iterator = vi.fn(() => true);
 
     const result = filterTree(emptyTree, iterator);
 
@@ -95,7 +98,7 @@ describe('filterTree', () => {
 
   it('应该处理没有子节点的情况', () => {
     const noChildrenTree: TestNode[] = [{ id: 1, name: 'no-children' }];
-    const iterator = vi.fn((node: TestNode) => true);
+    const iterator = vi.fn(() => true);
 
     const result = filterTree(noChildrenTree, iterator);
 
@@ -104,7 +107,7 @@ describe('filterTree', () => {
   });
 
   it('应该处理空树的情况', () => {
-    const iterator = vi.fn((node: TestNode) => true);
+    const iterator = vi.fn(() => true);
 
     const result = filterTree([], iterator);
 

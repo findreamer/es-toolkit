@@ -1,36 +1,36 @@
-import { findTree } from './findTree';
-import type { CacheOptions, Iterator, TreeNode } from './tree.type';
+import { type CacheOptions, findTreeNode } from './findTreeNode';
+import type { Iterator, TreeNode } from './tree.type';
 
 /**
  * 在树中查找满足条件的节点的索引。
  * @param tree 树形数据
- * @param iterator 迭代器函数，用于判断节点是否满足条件
- * @param options 配置选项
+ * @param predicate 迭代器函数，用于判断节点是否满足条件
+ * @param cacheOptions 配置选项
  * @returns 满足条件的节点索引数组或 null
  */
 
 export function findNodeIndexes<T extends TreeNode>(
   tree: T[],
-  iterator: Iterator<T, boolean>,
-  options?: Omit<CacheOptions<T>, 'foundEffect'>
+  predicate: Iterator<T, boolean>,
+  cacheOptions?: Omit<CacheOptions<T>, 'effect'>
 ): number[] | null {
-  let resultIndexes: number[] = [];
+  let nodeIndexes: number[] = [];
 
-  const onNodeFound: CacheOptions<T>['foundEffect'] = (_, { indexes }) => {
-    resultIndexes = indexes;
+  const updateIndexes: CacheOptions<T>['effect'] = (_, { indexes }) => {
+    nodeIndexes = indexes;
   };
 
-  findTree(
+  findTreeNode<T>(
     tree,
-    (item, opts) => {
-      if (iterator(item, opts)) {
-        onNodeFound(item, opts);
+    (node, options) => {
+      if (predicate(node, options)) {
+        updateIndexes(node, options);
         return true;
       }
       return false;
     },
-    options ? { ...options, foundEffect: onNodeFound } : undefined
+    cacheOptions ? { ...cacheOptions, effect: updateIndexes } : undefined
   );
 
-  return resultIndexes.length ? resultIndexes : null;
+  return nodeIndexes.length ? nodeIndexes : null;
 }

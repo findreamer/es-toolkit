@@ -1,4 +1,4 @@
 export * from './eachTree'
 export * from './everyTree'
-export * from './findTree'
+export * from './findTreeNode'
 export * from './findTreeAll'
