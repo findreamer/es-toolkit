@@ -50,7 +50,7 @@ export function everyTree<T extends TreeNode>(tree: T[], iterator: Iterator<T, b
           item: tree[i],
           index: i,
           level: level + 1,
-          paths: [],
+          paths: [tree[i]],
           indexes: [i],
         });
       }

@@ -42,8 +42,8 @@ export function filterTree<T extends TreeNode>(
         iterator(item, {
           index: idx,
           level,
-          paths,
-          indexes: [...indexes],
+          paths: [...paths, item],
+          indexes: [...indexes, idx],
         })
       );
   }
@@ -53,8 +53,8 @@ export function filterTree<T extends TreeNode>(
       iterator(item, {
         index,
         level,
-        paths,
-        indexes: [...indexes],
+        paths: [...paths, item],
+        indexes: [...indexes, index],
       })
     )
     .map((item, index) => processChildren(item, index));

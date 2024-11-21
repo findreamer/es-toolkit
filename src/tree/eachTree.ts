@@ -28,7 +28,7 @@ export function eachTree<T extends TreeNode>(
   const length = tree.length;
   for (let i = 0; i < length; i++) {
     const item = tree[i];
-    const res = iterator(item, { index: i, level, paths, indexes: [...indexes, i] });
+    const res = iterator(item, { index: i, level, paths: [...paths, item], indexes: [...indexes, i] });
 
     if (res === 'break') {
       return;
