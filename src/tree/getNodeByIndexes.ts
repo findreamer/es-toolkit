@@ -1,25 +1,24 @@
-import type { TreeNode } from './tree.type'
-
+import type { TreeNode } from './tree.type';
 
 /**
  * 根据索引获取节点
- * @param tree 
- * @param idx 
- * @returns 
+ * @param tree 树形数据
+ * @param indexes 索引数组或单个索引
+ * @returns 对应的节点或 null
  */
-export function getNodeByIndexes<T extends TreeNode>(tree: Array<T>, idx: number[] | number): T | null {
-    const indexes = Array.isArray(idx) ? idx : [idx];
+export function getNodeByIndexes<T extends TreeNode>(tree: T[], indexes: number[] | number): T | null {
+  const indexArray = Array.isArray(indexes) ? indexes : [indexes];
 
-    const lastIndex = indexes.pop()!;
-    let currentTree: Array<T> | null = tree;
+  const lastIndex = indexArray.pop()!;
+  let currentNodes: T[] | null = tree;
 
-    for (let i = 0, len = indexes.length; i < len; i++) {
-        const index = indexes[i];
-        if (!currentTree![index]) {
-            currentTree = null;
-            break;
-        }
-        currentTree = currentTree![index].children as any;
+  for (let i = 0, len = indexArray.length; i < len; i++) {
+    const index = indexArray[i];
+    if (!currentNodes![index]) {
+      currentNodes = null;
+      break;
     }
-    return currentTree ? currentTree[lastIndex] : null;
+    currentNodes = currentNodes![index].children as any;
+  }
+  return currentNodes ? currentNodes[lastIndex] : null;
 }

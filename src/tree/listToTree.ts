@@ -1,42 +1,52 @@
+import type { TreeNode } from './tree.type';
+import { isValidKey } from './utils';
 
-export interface TreeItem {
-    id: number | string;
-    children?: Array<TreeItem>;
-    [property: string]: unknown;
+interface TreeNodeWithId extends TreeNode {
+  id: number | string;
 }
 
 /**
  * 将列表转换为树结构
- * @param list 一个包含 TreeItem 类型元素的数组
- * @param resolveId 一个可选的函数，用于从 TreeItem 中提取唯一标识。默认情况下，使用元素本身的 id 属性。
- * @param iterator 一个可选的函数，用于将 TreeItem 转换为另一种数据格式。默认情况下，不进行转换。
+ * @param items 一个包含 TreeNode 类型元素的数组
+ * @param getId 一个可选的函数，用于从 TreeNode 中提取唯一标识。默认情况下，使用元素本身的 id 属性。
+ * @param transform 一个可选的函数，用于将 TreeNode 转换为另一种数据格式。默认情况下，不进行转换。
  */
-export function listToTree<T extends TreeItem>(list: T[]): T[];
-export function listToTree<T extends TreeItem>(list: T[], resolveId: (item: T) => number | string): T[];
-export function listToTree<T extends TreeItem, R extends TreeItem>(list: T[], resolveId: (item: T) => number | string, iterator: (item: T) => R): R[];
-export function listToTree<T extends TreeItem>(list: T[], resolveId?: (item: T) => number | string): T[];
-export function listToTree<T extends TreeItem, R extends TreeItem>(list: T[], resolveId?: (item: T) => number | string, iterator?: (item: T) => R): R[] {
-    const map = new Map<number | string, T | R>();
-    const result: R[] = [];
 
-    list.forEach((item) => {
-        const id = resolveId ? resolveId(item) : item.id;
-        const node = iterator ? iterator(item) : item;
+export function listToTree<T extends TreeNodeWithId>(items: T[]): T[];
+export function listToTree<T extends TreeNodeWithId>(items: T[], getId: (item: T) => number | string): T[];
+export function listToTree<T extends TreeNodeWithId, R extends TreeNodeWithId>(
+  items: T[],
+  getId: (item: T) => number | string,
+  transform: (item: T) => R
+): R[];
+export function listToTree<T extends TreeNodeWithId>(items: T[], getId?: (item: T) => number | string): T[];
+export function listToTree<T extends TreeNodeWithId, R extends TreeNodeWithId>(
+  items: T[],
+  getId?: (item: T) => number | string,
+  transform?: (item: T) => R
+): R[] {
+  const nodeMap = new Map<number | string, T | R>();
+  const tree: R[] = [];
 
-        isValidateKey(id) && map.set(id, node);
+  items.forEach(item => {
+    const nodeId = getId ? getId(item) : item.id;
+    const node = transform ? transform(item) : item;
 
-        if (id === 0 || id === -1 || id == '0' || id == '-1') {
-            result.push(node as R);
-        } else {
-            const parent = map.get(id);
-            if (parent) {
-                (parent.children || (parent.children = [])).push(node as R);
-            } else {
-                result.push(node as R);
-            }
-        }
+    if (isValidKey(nodeId)) {
+      nodeMap.set(nodeId, node);
+    }
 
-    });
+    if (nodeId === 0 || nodeId === -1 || nodeId === '0' || nodeId === '-1') {
+      tree.push(node as R);
+    } else {
+      const parentNode = nodeMap.get(nodeId);
+      if (parentNode) {
+        (parentNode.children || (parentNode.children = [])).push(node as R);
+      } else {
+        tree.push(node as R);
+      }
+    }
+  });
 
-    return result;
+  return tree;
 }

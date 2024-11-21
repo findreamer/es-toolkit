@@ -1,8 +1,7 @@
 import { eachTree } from './eachTree';
 import { everyTree } from './everyTree';
 import type { BooleanType, Iterator, TreeNode, TreeOptions } from './tree.type';
-import { isNumber } from '../compat/predicate/isNumber';
-import { isString } from '../predicate/isString';
+import { isValidKey } from './utils';
 
 /** 启用缓存 new Map(), 多次重复从一棵树中查找时可大幅提升性能 */
 export type CacheOptions<T extends TreeNode> = {
@@ -39,9 +38,6 @@ export function findTreeNode<T extends TreeNode>(
   predicate: Iterator<T, BooleanType | void>,
   cacheOptions?: CacheOptions<T>
 ): T | null {
-  const isValidCacheKey = (value: unknown): value is string | number =>
-    value !== '' && (isString(value) || isNumber(value));
-
   // 缓存优化
   if (cacheOptions && cacheOptions.cacheKey) {
     const { resolveCacheKey, cacheKey, effect } = cacheOptions;
@@ -54,7 +50,7 @@ export function findTreeNode<T extends TreeNode>(
       eachTree<T>(tree, (node, opts) => {
         const mapKey = resolveCacheKey ? resolveCacheKey(node!, opts!) : (node?.id ?? node?.key ?? node);
 
-        if (isValidCacheKey(mapKey)) {
+        if (isValidKey(mapKey)) {
           nodeMap.set(mapKey, { nodeData: node!, nodeOptions: opts! });
         } else if (typeof mapKey === 'object') {
           weakNodeMap.set(mapKey, { nodeData: node!, nodeOptions: opts! });
@@ -66,9 +62,7 @@ export function findTreeNode<T extends TreeNode>(
     }
 
     // 从缓存结果中查找
-    const cachedNode = isValidCacheKey(cacheKey)
-      ? treeCache.nodeMap!.get(cacheKey)
-      : treeCache.weakNodeMap!.get(cacheKey);
+    const cachedNode = isValidKey(cacheKey) ? treeCache.nodeMap!.get(cacheKey) : treeCache.weakNodeMap!.get(cacheKey);
     if (cachedNode != null) {
       const { nodeData, nodeOptions } = cachedNode;
 
