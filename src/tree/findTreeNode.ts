@@ -66,6 +66,10 @@ export function findTreeNode<T extends TreeNode>(
     if (cachedNode != null) {
       const { nodeData, nodeOptions } = cachedNode;
 
+      if (!predicate(nodeData, nodeOptions)) {
+        return null;
+      }
+
       if (effect) {
         effect(nodeData, nodeOptions);
       }
@@ -74,6 +78,7 @@ export function findTreeNode<T extends TreeNode>(
     }
   }
 
+  // 如果没有启用缓存或缓存未命中，使用遍历查找
   let foundNode: T | null = null;
   everyTree<T>(tree, (node, options) => {
     if (predicate(node, options)) {
