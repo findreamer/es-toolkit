@@ -15,6 +15,8 @@ export interface TreeOptions<T> {
   paths?: T[];
   /** 索引路径 */
   indexes?: number[];
+  /** 子节点 key */
+  childrenKey?: string;
 }
 
 export interface Iterator<T extends TreeNode, R> {

@@ -18,36 +18,52 @@ export function mapTree<T extends TreeNode, R>(
   iterator: Iterator<T, R>,
   options: MapTreeOptions<T> = {}
 ): R[] {
-  const { level = 1, useDfs = false, paths = [], indexes = [] } = options;
+  const { level = 1, useDfs = false, paths = [], indexes = [], childrenKey = 'children' } = options;
 
   return tree.map((item, index) => {
+    const children = item[childrenKey] as T[] | undefined;
+
     if (useDfs) {
-      const children = item.children
-        ? mapTree(item.children as T[], iterator, {
+      const mappedChildren = children
+        ? mapTree(children as T[], iterator, {
           index,
           level: level + 1,
           useDfs,
           paths: [...paths, item],
           indexes: [...indexes, index],
+          childrenKey,
         })
         : undefined;
-      if (children) {
-        item = { ...item, children };
-      }
-      item = (iterator(item, { index, level, paths, indexes: [...indexes] }) as unknown as T) ?? { ...item };
-      return item as unknown as R;
+
+      const newItem = mappedChildren
+        ? (iterator(item, { index, level, paths, indexes: [...indexes], childrenKey }) as unknown as T)
+        : { ...item };
+
+      return (
+        (iterator(newItem as T, { index, level, paths, indexes: [...indexes], childrenKey }) as unknown as R) ??
+        (newItem as unknown as R)
+      );
     }
 
-    item = (iterator(item, { index, level, paths, indexes: [...indexes] }) as unknown as T) ?? { ...item };
-    if (item.children && item.children.length > 0) {
-      item.children = mapTree(item.children as T[], iterator, {
+    const newItem = (iterator(item, {
+      index,
+      level,
+      paths,
+      indexes: [...indexes],
+      childrenKey,
+    }) ?? { ...item }) as T;
+
+    if (children?.length) {
+      (newItem as any)[childrenKey] = mapTree(children, iterator, {
         index,
         level: level + 1,
         useDfs,
-        paths: [...paths, item],
+        paths: [...paths, newItem],
         indexes: [...indexes, index],
-      }) as unknown as T[];
+        childrenKey,
+      }) as T[typeof childrenKey];
     }
-    return item as unknown as R;
+
+    return newItem as unknown as R;
   });
 }
