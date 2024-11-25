@@ -5,6 +5,14 @@ export interface MapTreeOptions<T> extends TreeOptions<T> {
   useDfs?: boolean;
 }
 
+/**
+ * 映射树
+ * @param tree 树
+ * @param iterator 迭代器
+ * @param options 选项
+ * @returns 结果
+ */
+
 export function mapTree<T extends TreeNode, R>(
   tree: T[],
   iterator: Iterator<T, R>,
