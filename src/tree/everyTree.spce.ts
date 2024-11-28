@@ -88,4 +88,55 @@ describe('everyTree', () => {
     // 由于第二个节点就不满足条件，所以应该在遍历到第二个节点时就停止
     expect(iterator).toHaveBeenCalledTimes(2);
   });
+
+  describe('childrenKey 配置测试', () => {
+    const customTree = [
+      {
+        id: 1,
+        name: 'Node 1',
+        subNodes: [
+          {
+            id: 11,
+            name: 'Node 1.1',
+            subNodes: [{ id: 111, name: 'Node 1.1.1' }],
+          },
+        ],
+      },
+      {
+        id: 2,
+        name: 'Node 2',
+        subNodes: [{ id: 21, name: 'Node 2.1' }],
+      },
+    ];
+
+    it('应该支持自定义子节点属性名', () => {
+      const visitedIds: number[] = [];
+      const result = everyTree(
+        customTree,
+        node => {
+          visitedIds.push(node.id);
+          return true;
+        },
+        { childrenKey: 'subNodes' }
+      );
+
+      expect(result).toBe(true);
+      expect(visitedIds).toEqual([1, 11, 111, 2, 21]);
+    });
+
+    it('使用错误的子节点属性名时应该正常处理', () => {
+      const visitedIds: number[] = [];
+      const result = everyTree(
+        customTree,
+        node => {
+          visitedIds.push(node.id);
+          return true;
+        },
+        { childrenKey: 'wrongKey' }
+      );
+
+      expect(result).toBe(true);
+      expect(visitedIds).toEqual([1, 2]);
+    });
+  });
 });

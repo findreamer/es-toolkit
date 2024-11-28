@@ -108,4 +108,31 @@ describe('flattenTree', () => {
       expect(result).toHaveLength(2);
     });
   });
+
+  describe('childrenKey 配置测试', () => {
+    const customTree = [
+      {
+        id: 1,
+        subNodes: [{ id: 11, subNodes: [{ id: 111 }] }, { id: 12 }],
+      },
+      {
+        id: 2,
+        subNodes: [{ id: 21 }],
+      },
+    ];
+
+    it('应该支持自定义子节点属性名', () => {
+      const result = flattenTree(customTree, { childrenKey: 'subNodes' });
+      expect(result).toHaveLength(6);
+      expect(result.map(node => node.id)).toEqual([1, 11, 111, 12, 2, 21]);
+    });
+
+    it('应该支持转换函数和自定义子节点属性名', () => {
+      const result = flattenTree(customTree, node => ({ value: node.id }), { childrenKey: 'subNodes' });
+
+      expect(result).toHaveLength(6);
+      expect(result[0]).toEqual({ value: 1 });
+      expect(result[2]).toEqual({ value: 111 });
+    });
+  });
 });

@@ -23,12 +23,18 @@ export function eachTree<T extends TreeNode>(
     throw new Error('iterator must be a function');
   }
 
-  const { level = 1, paths = [], indexes = [] } = options;
+  const { level = 1, paths = [], indexes = [], childrenKey = 'children' } = options;
 
   const length = tree.length;
   for (let i = 0; i < length; i++) {
     const item = tree[i];
-    const res = iterator(item, { index: i, level, paths: [...paths, item], indexes: [...indexes, i] });
+    const res = iterator(item, {
+      index: i,
+      level,
+      paths: [...paths, item],
+      indexes: [...indexes, i],
+      childrenKey,
+    });
 
     if (res === 'break') {
       return;
@@ -36,12 +42,14 @@ export function eachTree<T extends TreeNode>(
       continue;
     }
 
-    if (Array.isArray(item?.children) && item.children.length > 0) {
-      eachTree(item.children as T[], iterator, {
+    const children = item?.[childrenKey] as T[];
+    if (Array.isArray(children) && children.length > 0) {
+      eachTree(children, iterator, {
         index: i,
         level: level + 1,
         paths: [...paths, item],
         indexes: [...indexes, i],
+        childrenKey,
       });
     }
   }

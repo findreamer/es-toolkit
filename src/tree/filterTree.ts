@@ -17,22 +17,27 @@ export function filterTree<T extends TreeNode>(
   iterator: Iterator<T, BooleanType>,
   options: FilterTreeOptions<T> = {}
 ): T[] {
-  const { level = 1, paths = [], useDfs = false, indexes = [] } = options;
+  const { level = 1, paths = [], useDfs = false, indexes = [], childrenKey = 'children' } = options;
 
   const processChildren = (item: T, index: number) => {
-    if (!Array.isArray(item.children)) {
+    const children = item[childrenKey] as T[] | undefined;
+    if (!Array.isArray(children)) {
       return item;
     }
 
-    const children = filterTree(item.children as T[], iterator, {
+    const filteredChildren = filterTree(children, iterator, {
       index: useDfs ? index : indexes[index],
       level: level + 1,
       useDfs,
       paths: [...paths, item],
       indexes: [...indexes, index],
+      childrenKey,
     });
 
-    return { ...item, children };
+    return {
+      ...item,
+      [childrenKey]: filteredChildren,
+    };
   };
 
   if (useDfs) {
@@ -44,6 +49,7 @@ export function filterTree<T extends TreeNode>(
           level,
           paths: [...paths, item],
           indexes: [...indexes, idx],
+          childrenKey,
         })
       );
   }
@@ -55,6 +61,7 @@ export function filterTree<T extends TreeNode>(
         level,
         paths: [...paths, item],
         indexes: [...indexes, index],
+        childrenKey,
       })
     )
     .map((item, index) => processChildren(item, index));

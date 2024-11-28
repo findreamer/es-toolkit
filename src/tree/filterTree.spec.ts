@@ -114,4 +114,32 @@ describe('filterTree', () => {
     expect(result).toHaveLength(0);
     expect(iterator).not.toHaveBeenCalled();
   });
+
+  describe('childrenKey 配置测试', () => {
+    const customTree = [
+      {
+        id: 1,
+        subItems: [{ id: 11, subItems: [{ id: 111 }] }, { id: 12 }],
+      },
+      {
+        id: 2,
+        subItems: [{ id: 21 }],
+      },
+    ];
+
+    it('应该支持自定义子节点属性名', () => {
+      const result = filterTree(customTree, node => node.id !== 12, { childrenKey: 'subItems' });
+
+      expect(result[0].subItems).toBeDefined();
+      expect(result[0].subItems![0].subItems![0].id).toBe(111);
+      expect(result[0].children).toBeUndefined();
+    });
+
+    it('深度优先遍历时应该支持自定义子节点属性名', () => {
+      const result = filterTree(customTree, node => node.id !== 111, { childrenKey: 'subItems', useDfs: true });
+
+      expect(result[0].subItems).toBeDefined();
+      expect(result[0].subItems![0].subItems).toEqual([]);
+    });
+  });
 });

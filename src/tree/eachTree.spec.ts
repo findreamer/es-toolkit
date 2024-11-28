@@ -122,4 +122,44 @@ describe('eachTree', () => {
     }).not.toThrow();
     expect(result).toEqual([1]);
   });
+
+  describe('childrenKey 配置测试', () => {
+    const customTree = [
+      {
+        id: 1,
+        subNodes: [
+          { id: 2 },
+          {
+            id: 3,
+            subNodes: [{ id: 4 }],
+          },
+        ],
+      },
+      { id: 5 },
+    ];
+
+    it('应该支持自定义子节点属性名', () => {
+      const result: number[] = [];
+      eachTree(
+        customTree,
+        item => {
+          result.push(item.id);
+        },
+        { childrenKey: 'subNodes' }
+      );
+      expect(result).toEqual([1, 2, 3, 4, 5]);
+    });
+
+    it('使用错误的子节点属性名时应该正常处理', () => {
+      const result: number[] = [];
+      eachTree(
+        customTree,
+        item => {
+          result.push(item.id);
+        },
+        { childrenKey: 'wrongKey' }
+      );
+      expect(result).toEqual([1, 5]);
+    });
+  });
 });
