@@ -35,9 +35,7 @@ export function mapTree<T extends TreeNode, R>(
         })
         : undefined;
 
-      const newItem = mappedChildren
-        ? (iterator(item, { index, level, paths, indexes: [...indexes], childrenKey }) as unknown as T)
-        : { ...item };
+      const newItem = mappedChildren ? { ...item, [childrenKey]: mappedChildren } : item;
 
       return (
         (iterator(newItem as T, { index, level, paths, indexes: [...indexes], childrenKey }) as unknown as R) ??
