@@ -43,8 +43,8 @@ describe('listToTree', () => {
 
     it('应该正确构建多层树结构 - 使用函数', () => {
       const result = listToTree(mockList, {
-        idKey: item => item.id,
-        parentKey: item => item.parentId,
+        idKey: (item: TestNode) => item.id,
+        parentKey: (item: TestNode) => item.parentId,
       });
       expect(result).toHaveLength(2);
       expect(result[0].children?.length).toBe(2);
@@ -64,8 +64,8 @@ describe('listToTree', () => {
       });
 
       expect(result).toHaveLength(1);
-      expect(result[0].children).toBeDefined();
-      expect(result[0].children?.[0].name).toBe('Child');
+      expect((result[0] as any).children).toBeDefined();
+      expect((result[0] as any).children?.[0].name).toBe('Child');
     });
   });
 
@@ -78,7 +78,7 @@ describe('listToTree', () => {
 
     it('应该正确转换节点格式', () => {
       const result = listToTree<TestNode, TransformedNode>(mockList, {
-        transform: item => ({
+        transform: (item: TestNode) => ({
           id: item.id,
           title: item.name,
           value: item.id,
@@ -98,10 +98,10 @@ describe('listToTree', () => {
         { id: 1, name: 'Child', parentId: 0 },
       ];
 
-      const result = listToTree(listWithZeroRoot, item => item.parentId as number);
+      const result = listToTree(listWithZeroRoot, { parentKey: 'parentId' });
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe(0);
-      expect(result[0].children?.[0].id).toBe(1);
+      expect((result[0] as any).children?.[0].id).toBe(1);
     });
 
     it('应该正确处理根节点 id 为 -1 的情况', () => {
@@ -110,7 +110,7 @@ describe('listToTree', () => {
         { id: 1, name: 'Child', parentId: -1 },
       ];
 
-      const result = listToTree(listWithNegativeRoot, item => item.parentId as number);
+      const result = listToTree(listWithNegativeRoot, { parentKey: 'parentId' });
       expect(result).toHaveLength(1);
       expect(result[0].id).toBe(-1);
     });
@@ -121,9 +121,11 @@ describe('listToTree', () => {
         { id: '1-1', name: 'Child', parentId: '1' },
       ];
 
-      const result = listToTree(listWithStringIds, item => item.parentId as string);
+      const result = listToTree(listWithStringIds, {
+        parentKey: (item: TestNode) => item.parentId as string,
+      });
       expect(result).toHaveLength(1);
-      expect(result[0].children?.[0].id).toBe('1-1');
+      expect((result[0] as any).children?.[0].id).toBe('1-1');
     });
 
     it('应该正确处理循环引用', () => {
@@ -132,7 +134,9 @@ describe('listToTree', () => {
         { id: 2, name: 'Node 2', parentId: 1 },
       ];
 
-      const result = listToTree(circularList, item => item.parentId as number);
+      const result = listToTree(circularList, {
+        parentKey: (item: TestNode) => item.parentId as number,
+      });
       expect(result).toBeDefined();
       expect(Array.isArray(result)).toBeTruthy();
     });
@@ -145,7 +149,9 @@ describe('listToTree', () => {
         { id: 2, name: 'Node 2', parentId: 999 },
       ];
 
-      const result = listToTree(listWithInvalidParent, item => item.parentId as number);
+      const result = listToTree(listWithInvalidParent, {
+        parentKey: (item: TestNode) => item.parentId as number,
+      });
       expect(result).toHaveLength(2);
     });
 
@@ -178,7 +184,9 @@ describe('listToTree', () => {
         parentId: index > 0 ? Math.floor((index - 1) / 2) : undefined,
       }));
 
-      const result = listToTree(largeList, item => item.parentId as number);
+      const result = listToTree(largeList, {
+        parentKey: (item: TestNode) => item.parentId as number,
+      });
       expect(result).toBeDefined();
       expect(Array.isArray(result)).toBeTruthy();
     });
