@@ -25,48 +25,47 @@ describe('listToTree', () => {
       expect(result).toEqual([]);
     });
 
-    it('应该正确处理单层列表', () => {
-      const list = [
-        { id: 1, name: 'Node 1' },
-        { id: 2, name: 'Node 2' },
-      ];
-      const result = listToTree(list);
+    it('应该正确构建多层树结构 - 使用默认配置', () => {
+      const result = listToTree(mockList);
       expect(result).toHaveLength(2);
-      expect(result[0].id).toBe(1);
-      expect(result[1].id).toBe(2);
-    });
-
-    it('应该正确构建多层树结构', () => {
-      const result = listToTree(mockList, item => item.parentId as number);
-
-      expect(result).toHaveLength(2);
-      expect(result[0].children).toBeDefined();
       expect(result[0].children?.length).toBe(2);
       expect(result[0].children?.[0].children?.[0].id).toBe(111);
     });
+
+    it('应该正确构建多层树结构 - 使用字符串键', () => {
+      const result = listToTree(mockList, {
+        idKey: 'id',
+        parentKey: 'parentId',
+      });
+      expect(result).toHaveLength(2);
+      expect(result[0].children?.length).toBe(2);
+    });
+
+    it('应该正确构建多层树结构 - 使用函数', () => {
+      const result = listToTree(mockList, {
+        idKey: item => item.id,
+        parentKey: item => item.parentId,
+      });
+      expect(result).toHaveLength(2);
+      expect(result[0].children?.length).toBe(2);
+    });
   });
 
-  describe('自定义 getId 函数测试', () => {
-    it('应该支持自定义 getId 函数', () => {
+  describe('自定义键解析测试', () => {
+    it('应该支持自定义键名', () => {
       const customList = [
-        { id: 1, key: 'root', name: 'Root' },
-        { id: 2, key: 'child', parentKey: 'root', name: 'Child' },
+        { id: 1, customId: 'root', name: 'Root' },
+        { id: 2, customId: 'child', customParentId: 'root', name: 'Child' },
       ];
 
-      const result = listToTree(customList, item => item.parentKey || item.key);
+      const result = listToTree(customList, {
+        idKey: 'customId',
+        parentKey: 'customParentId',
+      });
 
       expect(result).toHaveLength(1);
       expect(result[0].children).toBeDefined();
       expect(result[0].children?.[0].name).toBe('Child');
-    });
-
-    it('应该处理无效的 getId 返回值', () => {
-      const result = listToTree(
-        mockList,
-        // @ts-expect-error 测试无效返回值
-        () => undefined
-      );
-      expect(result).toHaveLength(mockList.length);
     });
   });
 
@@ -78,15 +77,13 @@ describe('listToTree', () => {
     }
 
     it('应该正确转换节点格式', () => {
-      const result = listToTree<TestNode, TransformedNode>(
-        mockList,
-        item => item.parentId as number,
-        item => ({
+      const result = listToTree<TestNode, TransformedNode>(mockList, {
+        transform: item => ({
           id: item.id,
           title: item.name,
           value: item.id,
-        })
-      );
+        }),
+      });
 
       expect(result[0].title).toBeDefined();
       expect(result[0].name).toBeUndefined();

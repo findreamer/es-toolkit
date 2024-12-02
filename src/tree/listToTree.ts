@@ -6,49 +6,47 @@ interface TreeNodeWithId extends TreeNode {
   parentId?: number | string;
 }
 
-export type ResolveKey<T> = null | ((item: T) => number | string | undefined | null);
-/**
- * 将列表转换为树结构
- * @param items 一个包含 TreeNode 类型元素的数组
- * @param getId 一个可选的函数，用于从 TreeNode 中提取唯一标识。默认情况下，使用元素本身的 id 属性。
- * @param getParentId 一个可选的函数，用于从 TreeNode 中提取父节点的标识，默认情况下，请使用元素本身的 parentId 属性
- * @param transform 一个可选的函数，用于将 TreeNode 转换为另一种数据格式。默认情况下，不进行转换。
- */
+export type KeyResolver<T> = string | ((item: T) => number | string | undefined | null);
+export type TransformFn<T, R> = (item: T) => R;
 
-export function listToTree<T extends TreeNodeWithId>(items: T[]): T[];
-export function listToTree<T extends TreeNodeWithId>(items: T[], getId: ResolveKey<T>): T[];
-export function listToTree<T extends TreeNodeWithId>(
+export function listToTree<T extends TreeNodeWithId, R extends TreeNodeWithId = T>(
   items: T[],
-  getId?: ResolveKey<T>,
-  getParentId?: ResolveKey<T>
-): T[];
-export function listToTree<T extends TreeNodeWithId, R extends TreeNodeWithId>(
-  items: T[],
-  getId?: ResolveKey<T>,
-  getParentId?: ResolveKey<T>,
-  transform?: (item: T) => R
+  options?: {
+    idKey?: KeyResolver<T>;
+    parentKey?: KeyResolver<T>;
+    transform?: TransformFn<T, R>;
+  }
 ): R[] {
+  const { idKey = 'id', parentKey = 'parentId', transform } = options || {};
+
+  const resolveKey = (item: T, resolver: KeyResolver<T>) => {
+    if (typeof resolver === 'function') {
+      return resolver(item);
+    }
+    return (item as any)[resolver];
+  };
+
   const nodeMap = new Map<number | string, T | R>();
   const tree: R[] = [];
 
   items.forEach(item => {
-    const nodeId = getId ? getId(item) : item.id;
-    const node = transform ? transform(item) : item;
+    const nodeId = resolveKey(item, idKey);
+    const node = transform ? transform(item) : (item as unknown as R);
 
     if (isValidKey(nodeId)) {
       nodeMap.set(nodeId, node);
     }
 
-    const parentId = getParentId ? getParentId(item) : (item?.parentId ?? null);
+    const parentId = resolveKey(item, parentKey);
 
     if (parentId == null || !isValidKey(parentId)) {
-      tree.push(node as R);
+      tree.push(node);
     } else {
       const parentNode = nodeMap.get(parentId);
       if (parentNode) {
-        (parentNode.children || (parentNode.children = [])).push(node as R);
+        (parentNode.children || (parentNode.children = [])).push(node);
       } else {
-        tree.push(node as R);
+        tree.push(node);
       }
     }
   });
