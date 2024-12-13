@@ -52,7 +52,7 @@ export function everyTree<T extends TreeNode>(
         }
       }
     } else {
-      for (let i = tree.length - 1; i >= 0; i--) {
+      for (let i = 0; i < tree.length; i++) {
         stack.push({
           item: tree[i],
           index: i,

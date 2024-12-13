@@ -162,4 +162,65 @@ describe('eachTree', () => {
       expect(result).toEqual([1, 5]);
     });
   });
+
+  it('应该正确使用深度优先遍历', () => {
+    const result: number[] = [];
+    iterator.mockImplementationOnce((item: TestNode) => {
+      result.push(item.id);
+    });
+
+    eachTree(basicTree, iterator, { useDfs: true });
+    expect(result).toEqual([1, 2, 3, 4, 5]); // 深度优先遍历的顺序
+    expect(iterator).toHaveBeenCalledTimes(5);
+  });
+
+  it('应该提供正确的层级信息（深度优先遍历）', () => {
+    const levels: number[] = [];
+    eachTree(
+      basicTree,
+      (_, options) => {
+        levels.push(options.level);
+      },
+      { useDfs: true }
+    );
+    expect(levels).toEqual([1, 2, 2, 3, 1]); // 深度优先遍历的层级信息
+  });
+
+  it('应该提供正确的索引路径（深度优先遍历）', () => {
+    const indexPaths: number[][] = [];
+    eachTree(
+      basicTree,
+      (_, options) => {
+        indexPaths.push(options.indexes);
+      },
+      { useDfs: true }
+    );
+    expect(indexPaths).toEqual([[0], [0, 0], [0, 1], [0, 1, 0], [1]]); // 深度优先遍历的索引路径
+  });
+
+  it('当传入 break 时应该停止深度优先遍历', () => {
+    const result: number[] = [];
+    iterator.mockImplementationOnce((item: TestNode) => {
+      result.push(item.id);
+      if (item.id === 2) {
+        return 'break';
+      }
+    });
+
+    eachTree(basicTree, iterator, { useDfs: true });
+    expect(result).toEqual([1, 2]); // 深度优先遍历时的结果
+  });
+
+  it('当传入 continue 时应该跳过当前节点的子节点（深度优先遍历）', () => {
+    const result: number[] = [];
+    iterator.mockImplementationOnce((item: TestNode) => {
+      result.push(item.id);
+      if (item.id === 3) {
+        return 'continue';
+      }
+    });
+    eachTree(basicTree, iterator, { useDfs: true });
+    expect(result).toEqual([1, 2, 3, 5]); // 深度优先遍历时的结果
+    expect(iterator).toHaveBeenCalledTimes(4);
+  });
 });
