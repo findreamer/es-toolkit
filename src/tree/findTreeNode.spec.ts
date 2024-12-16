@@ -67,7 +67,7 @@ describe('findTreeNode', () => {
       });
 
       const result = findTreeNode(tree, () => false, {
-        cacheKey: 111,
+        search: 111,
         resolveCacheKey: node => node.id as number,
         effect: effectFn,
       });
@@ -79,7 +79,7 @@ describe('findTreeNode', () => {
 
     it('应该使用字符串类型的缓存键查找节点', () => {
       const result = findTreeNode(tree, () => false, {
-        cacheKey: 'node221',
+        search: 'node221',
         resolveCacheKey: node => node.key as string,
       });
 
@@ -89,7 +89,7 @@ describe('findTreeNode', () => {
 
     it('应该处理无效的缓存键', () => {
       const result = findTreeNode(tree, () => false, {
-        cacheKey: '',
+        search: '',
         resolveCacheKey: node => node.id as number,
       });
 
@@ -99,7 +99,7 @@ describe('findTreeNode', () => {
     it('应该使用treeNode 对象查找节点', () => {
       const node = tree[0].children![0].children![0];
       const result = findTreeNode(tree, () => false, {
-        cacheKey: node,
+        search: node,
         resolveCacheKey: node => node,
       });
 
@@ -110,7 +110,7 @@ describe('findTreeNode', () => {
     it('应该使用对象类型的缓存键（WeakMap）', () => {
       const objKey = { id: 'test' };
       const result = findTreeNode(tree, () => false, {
-        cacheKey: objKey,
+        search: objKey,
         resolveCacheKey: () => objKey,
       });
 
@@ -161,14 +161,14 @@ describe('findTreeNode', () => {
     it('应该在树变化时重建缓存', () => {
       // 第一次查找建立缓存
       findTreeNode(tree, () => false, {
-        cacheKey: 111,
+        search: 111,
         resolveCacheKey: node => node.id as number,
       });
 
       // 使用不同的树进行查找
       const newTree = [{ id: 1, children: [{ id: 2 }] }];
       findTreeNode(newTree, () => false, {
-        cacheKey: 2,
+        search: 2,
         resolveCacheKey: node => node.id as number,
       });
 
