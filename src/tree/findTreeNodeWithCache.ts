@@ -32,7 +32,7 @@ const treeCache: TreeCache<any> = {
  * @returns 找到的第一个满足条件的节点，如果没有找到则返回 null。
  */
 
-export function findTreeNode<T extends TreeNode>(tree: T[], options: FindTreeNodeOptions<T>): T | null {
+export function findTreeNodeWithCache<T extends TreeNode>(tree: T[], options: FindTreeNodeOptions<T>): T | null {
   // 使用缓存查找
   const { search, resolveCacheKey = 'id', effect } = options;
 
