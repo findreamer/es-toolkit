@@ -1,12 +1,19 @@
 import type { Iterator, TreeNode, TreeOptions } from './tree.type';
+import { isIterable } from './utils';
 
 export type EachTreeIteratorRes = void | boolean | 'break' | 'continue';
 
 export interface EachTreeOptions<T> extends TreeOptions<T> {
-  /** 是否深度优先， 默认 false */
+  /** 是否使用深度优先遍历，默认为 false  */
   useDfs?: boolean;
 }
 
+type QueueProps<T> = Array<{
+  nodes: T[];
+  level: number;
+  paths: T[];
+  indexes: number[];
+}>;
 /**
  * 遍历树
  * @param tree 数组
@@ -28,52 +35,44 @@ export function eachTree<T extends TreeNode>(
     throw new Error('iterator must be a function');
   }
 
-  const {
-    level = 1,
-    paths = [],
-    indexes = [],
-    childrenKey = 'children',
-    useDfs = false, // 修改默认值为 false
-  } = options;
+  // 抽离 children 通用处理逻辑
+  function traverseChildren<U extends T>(
+    nodes: U[],
+    iterator2: Iterator<U, EachTreeIteratorRes>,
+    options: Required<EachTreeOptions<U>>,
+    queue?: QueueProps<U>
+  ) {
+    const { paths, level, indexes, useDfs, childrenKey } = options;
+    for (let i = 0; i < nodes.length; i++) {
+      const item = nodes[i];
+      const res = iterator2(item, {
+        index: i,
+        level,
+        paths: [...paths, item],
+        indexes: [...indexes, i],
+        childrenKey,
+      });
 
-  // 广度优先遍历
-  if (!useDfs) {
-    const queue: Array<{
-      nodes: T[];
-      level: number;
-      paths: T[];
-      indexes: number[];
-    }> = [
-        {
-          nodes: tree,
-          level,
-          paths,
-          indexes,
-        },
-      ];
+      if (res === 'break') {
+        break;
+      }
 
-    while (queue.length) {
-      const { nodes, level, paths, indexes } = queue.shift()!;
+      if (res === 'continue') {
+        continue;
+      }
 
-      for (let i = 0; i < nodes.length; i++) {
-        const item = nodes[i];
-        const res = iterator(item, {
-          index: i,
-          level,
-          paths: [...paths, item],
-          indexes: [...indexes, i],
-          childrenKey,
-        });
-
-        if (res === 'break') {
-          return;
-        } else if (res === 'continue') {
-          continue;
-        }
-
-        const children = item?.[childrenKey] as T[];
-        if (Array.isArray(children) && children.length > 0) {
-          queue.push({
+      const children = item?.[childrenKey] as U[];
+      if (isIterable(children) && children.length > 0) {
+        if (useDfs) {
+          eachTree(children, iterator, {
+            index: i,
+            level: level + 1,
+            paths: [...paths, item],
+            indexes: [...indexes, i],
+            childrenKey,
+          });
+        } else {
+          queue?.push({
             nodes: children,
             level: level + 1,
             paths: [...paths, item],
@@ -82,36 +81,35 @@ export function eachTree<T extends TreeNode>(
         }
       }
     }
+  }
+
+  const { index = 0, level = 1, paths = [], indexes = [], childrenKey = 'children', useDfs = false } = options;
+
+  // 广度优先遍历
+  if (!useDfs) {
+    const queue: QueueProps<T> = [
+      {
+        nodes: tree,
+        level,
+        paths,
+        indexes,
+      },
+    ];
+
+    while (queue.length) {
+      const { nodes, level, paths, indexes } = queue.shift()!;
+      traverseChildren<T>(nodes, iterator, { index, level, paths, indexes, childrenKey, useDfs }, queue);
+    }
     return;
   }
 
-  // 深度优先遍历（原有逻辑）
-  const length = tree.length;
-  for (let i = 0; i < length; i++) {
-    const item = tree[i];
-    const res = iterator(item, {
-      index: i,
-      level,
-      paths: [...paths, item],
-      indexes: [...indexes, i],
-      childrenKey,
-    });
-
-    if (res === 'break') {
-      return;
-    } else if (res === 'continue') {
-      continue;
-    }
-
-    const children = item?.[childrenKey] as T[];
-    if (Array.isArray(children) && children.length > 0) {
-      eachTree(children, iterator, {
-        index: i,
-        level: level + 1,
-        paths: [...paths, item],
-        indexes: [...indexes, i],
-        childrenKey,
-      });
-    }
-  }
+  // 深度优先遍历
+  traverseChildren(tree, iterator, {
+    index,
+    level,
+    paths,
+    indexes,
+    childrenKey,
+    useDfs,
+  });
 }
