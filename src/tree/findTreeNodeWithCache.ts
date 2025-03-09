@@ -27,8 +27,7 @@ const treeCache: TreeCache<any> = {
 /**
  * 在树中查找满足条件的节点。
  * @param tree - 要搜索的树。
- * @param predicate - 用于测试树中每个节点的函数。
- * @param cacheOptions - 可选的缓存选项。
+ * @param options - 查找选项。
  * @returns 找到的第一个满足条件的节点，如果没有找到则返回 null。
  */
 

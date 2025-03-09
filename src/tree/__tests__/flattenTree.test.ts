@@ -155,4 +155,26 @@ describe('flattenTree', () => {
       expect(() => flattenTree(malformedTree)).not.toThrow();
     });
   });
+
+  describe('函数重载测试，能正确推断类型', () => {
+    it('测试1', () => {
+      const result = flattenTree(testTree);
+      expect(result).toEqual(['1', '1-1', '1-1-1', '1-2', '2', '2-1']);
+    });
+
+    it('测试2', () => {
+      const result = flattenTree(testTree, 1);
+      expect(result).toEqual(['1', '2']);
+    });
+
+    it('测试3', () => {
+      const result = flattenTree(testTree, 1, node => node.id);
+      expect(result).toEqual(['1', '2']);
+    });
+
+    it('测试4', () => {
+      const result = flattenTree(testTree, node => node.id, 1);
+      expect(result).toEqual(['1', '2']);
+    });
+  });
 });
