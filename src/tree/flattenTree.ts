@@ -1,5 +1,5 @@
 import { everyTree } from '.';
-import type { EveryTreeOptions } from './everyTree';
+import type { EveryTreeOptions } from './everyTreeNode';
 import type { Iterator, TreeNode } from './tree.type';
 
 export interface FlattenTreeOptions<T, R> extends EveryTreeOptions<T> {

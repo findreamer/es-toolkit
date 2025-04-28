@@ -1,4 +1,4 @@
-import { eachTree } from './eachTree';
+import { eachTree } from './eachTreeNode';
 import type { Iterator, TreeNode } from './tree.type';
 
 /**

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { everyTree } from './everyTree';
+import { everyTree } from './everyTreeNode';
 import type { TreeNode } from './tree.type';
 
 interface TestNode extends TreeNode {

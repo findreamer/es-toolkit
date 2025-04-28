@@ -1,7 +1,7 @@
 import type { Iterator, TreeNode, TreeOptions } from './tree.type';
 import { isIterable } from './utils';
 
-export interface EveryTreeOptions<T> extends TreeOptions<T> {
+export interface EveryTreeNodeOptions<T> extends TreeOptions<T> {
   /** 是否使用深度优先遍历，默认为 false */
   useDfs?: boolean;
 }
@@ -17,10 +17,10 @@ export interface StackNode<T> extends Required<TreeOptions<T>> {
  * @param options 遍历选项
  * @returns boolean
  */
-export function everyTree<T extends TreeNode>(
+export function everyTreeNode<T extends TreeNode>(
   tree: T[],
   iterator: Iterator<T, boolean>,
-  options: EveryTreeOptions<T> = {}
+  options: EveryTreeNodeOptions<T> = {}
 ): boolean {
   if (!Array.isArray(tree)) {
     return false;
@@ -63,6 +63,8 @@ export function everyTree<T extends TreeNode>(
   const addNodesToContainer = (nodes: T[], baseLevel: number, basePaths: T[] = [], baseIndexes: number[] = []) => {
     const len = nodes.length;
     for (let i = 0; i < len; i++) {
+      // 如果是DFS，从后往前遍历。
+      // 如果是BFS，从前向后遍历
       const idx = useDfs ? len - 1 - i : i;
       const node = nodes[idx];
       container.push({
@@ -89,6 +91,8 @@ export function everyTree<T extends TreeNode>(
   };
 
   while (container.length > 0) {
+    // DFS下的执行逻辑：从容器中取出最后一个节点进行处理，如果节点有子节点，则将子节点从后往前添加到容器中。
+    // BFS下的执行逻辑：从容器中取出第一个节点进行处理，如果节点有子节点，则将子节点从前向后添加到容器中。
     const currentNode = useDfs ? container.pop()! : container.shift()!;
 
     if (currentNode.index >= 0) {

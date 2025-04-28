@@ -1,9 +1,9 @@
 import type { Iterator, TreeNode, TreeOptions } from './tree.type';
 import { isIterable } from './utils';
 
-export type EachTreeIteratorRes = void | boolean | 'break' | 'continue';
+export type EachTreeNodeIteratorRes = void | boolean | 'break' | 'continue';
 
-export interface EachTreeOptions<T> extends TreeOptions<T> {
+export interface EachTreeNodeOptions<T> extends TreeOptions<T> {
   /** 是否使用深度优先遍历，默认为 false  */
   useDfs?: boolean;
 }
@@ -22,10 +22,10 @@ type QueueProps<T> = Array<{
  * @returns void
  */
 
-export function eachTree<T extends TreeNode>(
+export function eachTreeNode<T extends TreeNode>(
   tree: T[],
-  iterator: Iterator<T, EachTreeIteratorRes>,
-  options: EachTreeOptions<T> = {}
+  iterator: Iterator<T, EachTreeNodeIteratorRes>,
+  options: EachTreeNodeOptions<T> = {}
 ): void {
   if (!Array.isArray(tree)) {
     throw new Error('tree must be an array');
@@ -38,8 +38,8 @@ export function eachTree<T extends TreeNode>(
   // 抽离 children 通用处理逻辑
   function traverseChildren<U extends T>(
     nodes: U[],
-    iterator2: Iterator<U, EachTreeIteratorRes>,
-    options: Required<EachTreeOptions<U>>,
+    iterator2: Iterator<U, EachTreeNodeIteratorRes>,
+    options: Required<EachTreeNodeOptions<U>>,
     queue?: QueueProps<U>
   ) {
     const { paths, level, indexes, useDfs, childrenKey } = options;
@@ -64,7 +64,7 @@ export function eachTree<T extends TreeNode>(
       const children = item?.[childrenKey] as U[];
       if (isIterable(children) && children.length > 0) {
         if (useDfs) {
-          eachTree(children, iterator, {
+          eachTreeNode(children, iterator, {
             index: i,
             level: level + 1,
             paths: [...paths, item],

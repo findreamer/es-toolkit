@@ -1,5 +1,5 @@
-export * from './eachTree';
-export * from './everyTree';
+export * from './eachTreeNode';
+export * from './everyTreeNode';
 export * from './filterTree';
 export * from './findAllTreeNodes';
 export * from './findNodeIndexes';
