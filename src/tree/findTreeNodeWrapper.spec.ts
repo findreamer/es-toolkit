@@ -67,6 +67,14 @@ describe('findTreeNode', () => {
       });
       expect(result?.id).toBe(11);
     });
+
+    it('应该支持使用 effect 函数', () => {
+      const effectFn = vi.fn();
+      findTreeNode(tree, node => node.id === 11, {
+        effect: effectFn,
+      });
+      expect(effectFn).toHaveBeenCalledWith(expect.objectContaining({ id: 11 }), expect.any(Object));
+    });
   });
 
   describe('缓存测试 - 使用 predicate 函数', () => {
