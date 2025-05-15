@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { clearTreeCache, getTreeCache } from './findTreeNodeWithCache';
-import { findTreeNodeWrapper } from './findTreeNodeWrapper';
+import { findTreeNode } from './findTreeNodeWrapper';
 import type { TreeNode } from './tree.type';
 
 interface TestNode extends TreeNode {
@@ -13,7 +13,7 @@ interface CustomNode extends TestNode {
   objRef?: { custom: string };
 }
 
-describe('findTreeNodeWrapper', () => {
+describe('findTreeNode', () => {
   // 测试数据
   const tree: TestNode[] = [
     {
@@ -44,13 +44,13 @@ describe('findTreeNodeWrapper', () => {
 
   describe('基本功能测试', () => {
     it('应该能找到匹配的节点', () => {
-      const result = findTreeNodeWrapper(tree, node => node.id === 11);
+      const result = findTreeNode(tree, node => node.id === 11);
       expect(result).toBeTruthy();
       expect(result?.id).toBe(11);
     });
 
     it('当没有匹配节点时应返回 null', () => {
-      const result = findTreeNodeWrapper(tree, node => node.id === 999);
+      const result = findTreeNode(tree, node => node.id === 999);
       expect(result).toBeNull();
     });
 
@@ -62,7 +62,7 @@ describe('findTreeNodeWrapper', () => {
           subNodes: [{ id: 11, name: 'Custom 1.1' }],
         },
       ];
-      const result = findTreeNodeWrapper(customTree, node => node.id === 11, {
+      const result = findTreeNode(customTree, node => node.id === 11, {
         childrenKey: 'subNodes',
       });
       expect(result?.id).toBe(11);
@@ -74,8 +74,7 @@ describe('findTreeNodeWrapper', () => {
       const predicate = vi.fn(node => node.id === 11);
 
       // 第一次调用
-      const result1 = findTreeNodeWrapper(tree, predicate, {
-        useCache: true,
+      const result1 = findTreeNode(tree, predicate, {
         search: 11,
         resolveCacheKey: 'id',
       });
@@ -83,8 +82,7 @@ describe('findTreeNodeWrapper', () => {
 
       // 第二次调用应该使用缓存，不应再调用 predicate
       predicate.mockClear();
-      const result2 = findTreeNodeWrapper(tree, predicate, {
-        useCache: true,
+      const result2 = findTreeNode(tree, predicate, {
         search: 11,
         resolveCacheKey: 'id',
       });
@@ -94,21 +92,18 @@ describe('findTreeNodeWrapper', () => {
 
     it('使用缓存但不同的 search 值时应该返回不同结果', () => {
       // 建立缓存
-      findTreeNodeWrapper(tree, () => true, {
-        useCache: true,
+      findTreeNode(tree, () => true, {
         search: 11,
         resolveCacheKey: 'id',
       });
 
       // 使用不同的 search 值
-      const result1 = findTreeNodeWrapper(tree, () => true, {
-        useCache: true,
+      const result1 = findTreeNode(tree, () => true, {
         search: 11,
         resolveCacheKey: 'id',
       });
 
-      const result2 = findTreeNodeWrapper(tree, () => true, {
-        useCache: true,
+      const result2 = findTreeNode(tree, () => true, {
         search: 12,
         resolveCacheKey: 'id',
       });
@@ -120,9 +115,8 @@ describe('findTreeNodeWrapper', () => {
 
   describe('缓存测试 - 直接使用 options 对象', () => {
     it('直接传递缓存选项对象时应该正确工作', () => {
-      // 使用重载：findTreeNodeWrapper(tree, options)
-      const result = findTreeNodeWrapper(tree, {
-        useCache: true,
+      // 使用重载：findTreeNode(tree, options)
+      const result = findTreeNode(tree, {
         search: 11,
         resolveCacheKey: 'id',
       });
@@ -134,8 +128,7 @@ describe('findTreeNodeWrapper', () => {
       const resolveCacheKey = vi.fn((node: TestNode) => node.id as number);
 
       // 建立缓存
-      findTreeNodeWrapper(tree, {
-        useCache: true,
+      findTreeNode(tree, {
         search: 11,
         resolveCacheKey,
       });
@@ -144,8 +137,7 @@ describe('findTreeNodeWrapper', () => {
 
       // 再次查找，应直接从缓存获取
       resolveCacheKey.mockClear();
-      const result = findTreeNodeWrapper(tree, {
-        useCache: true,
+      const result = findTreeNode(tree, {
         search: 11,
         resolveCacheKey,
       });
@@ -155,8 +147,7 @@ describe('findTreeNodeWrapper', () => {
     });
 
     it('直接传递配置对象时应该执行 effect 函数', () => {
-      const result = findTreeNodeWrapper(tree, {
-        useCache: true,
+      const result = findTreeNode(tree, {
         search: 11,
         resolveCacheKey: 'id',
         effect: effectFn,
@@ -169,8 +160,7 @@ describe('findTreeNodeWrapper', () => {
 
   describe('缓存对象内部测试', () => {
     it('应该正确构建缓存对象', () => {
-      findTreeNodeWrapper(tree, {
-        useCache: true,
+      findTreeNode(tree, {
         search: 11,
         resolveCacheKey: 'id',
       });
@@ -186,8 +176,7 @@ describe('findTreeNodeWrapper', () => {
       const nodeWithObjKey: CustomNode = { id: 100, name: 'Object Key Node', objRef: objKey };
       const customTree = [...tree, nodeWithObjKey] as CustomNode[];
 
-      findTreeNodeWrapper(customTree, {
-        useCache: true,
+      findTreeNode(customTree, {
         search: objKey,
         resolveCacheKey: (node: CustomNode) => {
           return node.id === 100 ? node.objRef! : (node.id as number);
@@ -195,8 +184,7 @@ describe('findTreeNodeWrapper', () => {
       });
 
       // 从缓存中查找
-      const result = findTreeNodeWrapper(customTree, {
-        useCache: true,
+      const result = findTreeNode(customTree, {
         search: objKey,
         resolveCacheKey: (node: CustomNode) => {
           return node.id === 100 ? node.objRef! : (node.id as number);
@@ -211,21 +199,19 @@ describe('findTreeNodeWrapper', () => {
     it('不使用缓存且无 predicate 时应抛出错误', () => {
       expect(() => {
         // @ts-expect-error - 故意传递无效参数
-        findTreeNodeWrapper(tree, { useCache: false });
+        findTreeNode(tree, {});
       }).toThrow();
     });
 
     it('使用缓存但没有 search 参数时应返回 null', () => {
       // 建立缓存
-      findTreeNodeWrapper(tree, {
-        useCache: true,
+      findTreeNode(tree, {
         search: 11,
         resolveCacheKey: 'id',
       });
 
       // 缺少 search 参数的测试，这里修改测试策略：通过传递空对象创建一个不同的缓存键
-      const result = findTreeNodeWrapper(tree, {
-        useCache: true,
+      const result = findTreeNode(tree, {
         search: {} as any, // 使用一个不会命中缓存的值
         resolveCacheKey: 'id',
       });
@@ -237,7 +223,7 @@ describe('findTreeNodeWrapper', () => {
   describe('遍历顺序测试', () => {
     it('默认应该使用广度优先遍历', () => {
       const visited: number[] = [];
-      findTreeNodeWrapper(tree, node => {
+      findTreeNode(tree, node => {
         visited.push(node.id);
         return node.id === 2; // 找到 id 为 2 的节点
       });
@@ -249,7 +235,7 @@ describe('findTreeNodeWrapper', () => {
 
     it('应该支持深度优先遍历', () => {
       const visited: number[] = [];
-      findTreeNodeWrapper(
+      findTreeNode(
         tree,
         node => {
           visited.push(node.id);
@@ -269,12 +255,12 @@ describe('findTreeNodeWrapper', () => {
 
   describe('边界情况测试', () => {
     it('空树应该返回 null', () => {
-      const result = findTreeNodeWrapper([] as TestNode[], node => node.id === 1);
+      const result = findTreeNode([] as TestNode[], node => node.id === 1);
       expect(result).toBeNull();
     });
 
     it('无效树结构应该返回 null', () => {
-      const result = findTreeNodeWrapper(null as any, node => node.id === 1);
+      const result = findTreeNode(null as any, node => node.id === 1);
       expect(result).toBeNull();
     });
   });
@@ -282,24 +268,22 @@ describe('findTreeNodeWrapper', () => {
   describe('组合使用场景', () => {
     it('先使用缓存查找再不使用缓存查找', () => {
       // 先建立缓存
-      findTreeNodeWrapper(tree, {
-        useCache: true,
+      findTreeNode(tree, {
         search: 11,
         resolveCacheKey: 'id',
       });
 
       // 后使用普通查找
-      const result = findTreeNodeWrapper(tree, node => node.id === 12);
+      const result = findTreeNode(tree, node => node.id === 12);
       expect(result?.id).toBe(12);
     });
 
     it('先普通查找再使用缓存', () => {
       // 先普通查找
-      findTreeNodeWrapper(tree, node => node.id === 12);
+      findTreeNode(tree, node => node.id === 12);
 
       // 后使用缓存查找
-      const result = findTreeNodeWrapper(tree, {
-        useCache: true,
+      const result = findTreeNode(tree, {
         search: 11,
         resolveCacheKey: 'id',
       });
